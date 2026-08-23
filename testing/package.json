@@ -1,0 +1,13 @@
+{
+  "name": "floodspot-testing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Automated Test Suite and Excel Reporting for FloodSpot",
+  "main": "run-tests.js",
+  "scripts": {
+    "test": "node run-tests.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  }
+}

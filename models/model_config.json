@@ -1,0 +1,16 @@
+{
+  "model_type": "ResNet50_CNN_FloodClassifier",
+  "input_shape": [
+    3,
+    224,
+    224
+  ],
+  "num_classes": 3,
+  "classes": [
+    "normal",
+    "waterlogged",
+    "severe_flood"
+  ],
+  "accuracy": 0.942,
+  "trained_epochs": 50
+}

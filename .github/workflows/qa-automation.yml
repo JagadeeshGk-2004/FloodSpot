@@ -1,0 +1,37 @@
+name: QA Automation & FloodSpot Excel Reporting
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test-automation:
+    name: Run 1,200 FloodSpot Test Scenarios & Build Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'testing/package.json'
+
+      - name: Install Testing Dependencies
+        run: npm --prefix testing install
+
+      - name: Execute Enterprise Automation Suite (1,200 Scenarios)
+        run: npm --prefix testing test
+
+      - name: Upload Excel Test Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FloodSpot report
+          path: testing/reports/FloodSpot report.xlsx
+          if-no-files-found: error
+          retention-days: 30

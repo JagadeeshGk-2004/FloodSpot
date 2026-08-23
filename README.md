@@ -1,16 +1,46 @@
-# React + Vite
+# FloodSpot - Community Flood Monitoring & Safe Navigation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+FloodSpot is a community-driven flood monitoring, alert, and safe navigation application.
 
-Currently, two official plugins are available:
+## Directory Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```text
+floodspot/
+├── .env                  # Master environment variable file (Vite + FastAPI)
+├── package.json          # Master orchestration script
+├── README.md             # Project documentation
+├── frontend/             # React + Vite application
+│   ├── public/           # Static public assets
+│   ├── src/              # React components, hooks, and services
+│   ├── index.html        # Main HTML entrypoint
+│   ├── package.json      # Frontend dependencies and scripts
+│   └── vite.config.js    # Vite configuration (envDir configured to '../')
+├── backend/              # Python FastAPI server
+│   ├── main.py           # FastAPI main application
+│   ├── config.py         # Pydantic settings loading from '../.env'
+│   ├── routes/           # API endpoints (alerts, reports, routes)
+│   ├── services/         # Weather and Supabase integrations
+│   └── requirements.txt  # Backend dependencies
+└── models/               # ML models, computer vision & hydrology inference scripts
+```
 
-## React Compiler
+## Running Locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Run Both Frontend & Backend Concurrently (Root)
+```bash
+npm run dev
+```
 
-## Expanding the ESLint configuration
+### Run Frontend Only
+```bash
+npm run dev:frontend
+# or
+cd frontend && npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Run Backend Only
+```bash
+npm run dev:backend
+# or
+cd backend && uvicorn main:app --reload
+```
