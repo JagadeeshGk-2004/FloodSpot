@@ -6,14 +6,25 @@ from typing import Dict, Any, Optional
 import sys
 from pathlib import Path
 
-# Register root directory in sys.path to allow importing from models directory
+# Register root and backend directory in sys.path
 ROOT_DIR = Path(__file__).resolve().parent.parent
+BACKEND_DIR = Path(__file__).resolve().parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from config import settings
-from routes import alerts, reports, routes
+from routes import alerts, reports, routes, auth
 from services.weather_service import WeatherService
+
+from services.local_db import init_local_db
+
+# Initialize Local SQLite persistent database
+try:
+    init_local_db()
+except Exception as db_err:
+    logging.warning(f"Could not initialize local SQLite database: {db_err}")
 
 # Load dummy CNN Flood Classification model weights on startup
 try:
@@ -44,28 +55,39 @@ logger.info(f"Enabling CORS origins: {origins}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if "*" not in origins else ["*"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+from fastapi.staticfiles import StaticFiles
+
+# Ensure static uploads directory exists for persistent asset storage
+STATIC_DIR = BACKEND_DIR / "static"
+UPLOADS_DIR = STATIC_DIR / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
 # Register Sub-routers
 app.include_router(alerts.router)
 app.include_router(reports.router)
+app.include_router(reports.router, prefix="/api/incidents", tags=["Incidents Alias"])
 app.include_router(routes.router)
+app.include_router(auth.router)
 
 import base64
 from pydantic import BaseModel, Field
-from services.ai_verifier import verify_flood_image
+from services.cv_service import verify_flood_image
 
 class ImagePayload(BaseModel):
     image_base64: str = Field(..., description="Base64 image data string")
 
-@app.post("/api/verify-image", tags=["AI Vision"], summary="Analyze image with Gemini Vision AI")
+@app.post("/api/verify-image", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
 async def verify_image_endpoint(payload: ImagePayload) -> Dict[str, Any]:
     """
-    Direct Gemini Vision AI verification endpoint.
+    Direct FloodNet-CV Hydro-Depth Engine verification endpoint.
     Examines uploaded image and returns { "is_flood": bool, "confidence": float, "detected_elements": str, "reason": str }.
     """
     try:

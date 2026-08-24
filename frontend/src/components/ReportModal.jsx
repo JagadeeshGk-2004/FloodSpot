@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   WifiOff
 } from 'lucide-react';
-import { verifyFloodImage } from '../lib/gemini';
+import { verifyFloodImage } from '../lib/cvEngine';
 import { createFloodReport } from '../lib/supabase';
 import { queueFloodReport, getCurrentLocation } from '../lib/offlineEngine';
 
@@ -20,7 +20,7 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
   const [imagePreview, setImagePreview] = useState(null);
   const [, setBase64Image] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [aiResult, setAiResult] = useState(null);
+  const [cvResult, setCvResult] = useState(null);
 
   const [locationName, setLocationName] = useState('');
   const [latitude, setLatitude] = useState(13.0827);
@@ -51,7 +51,7 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
       setIsAnalyzing(true);
       try {
         const result = await verifyFloodImage(base64Str);
-        setAiResult(result);
+        setCvResult(result);
 
         if (!result.is_flood) {
           const rejectReason = result.reason || 'Image features do not match urban waterlogging or flood parameters.';
@@ -71,7 +71,7 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
       } catch (err) {
         const msg = err?.detail || err?.message || 'Image features do not match urban waterlogging or flood parameters.';
         console.error('Visual feature analysis error:', err);
-        setAiResult({ is_flood: false, confidence: 0, detected_elements: 'unknown', reason: msg });
+        setCvResult({ is_flood: false, confidence: 0, detected_elements: 'unknown', reason: msg });
         setErrorMsg(msg);
         if (onShowToast) {
           onShowToast(`❌ Visual Verification Failed`, 'error');
@@ -111,8 +111,8 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
       return;
     }
 
-    if (imagePreview && aiResult && aiResult.is_flood === false) {
-      const rejectMsg = aiResult.reason || 'Image features do not match urban waterlogging or flood parameters.';
+    if (imagePreview && cvResult && cvResult.is_flood === false) {
+      const rejectMsg = cvResult.reason || 'Image features do not match urban waterlogging or flood parameters.';
       setErrorMsg(rejectMsg);
       if (onShowToast) {
         onShowToast(`Visual Verification Failed: ${rejectMsg}`, 'error');
@@ -132,8 +132,8 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
       severity,
       water_depth: waterDepth,
       description: description.trim(),
-      verified: aiResult?.is_flood ?? false,
-      ai_confidence: aiResult?.confidence ? (aiResult.confidence / 100) : 0.85,
+      verified: cvResult?.is_flood ?? false,
+      ai_confidence: cvResult?.confidence ? (cvResult.confidence / 100) : 0.85,
       image_url: imagePreview || null,
       image_base64: imagePreview || null,
       created_at: new Date().toISOString()
@@ -193,7 +193,7 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
       // Reset form state and close modal
       setImagePreview(null);
       setBase64Image(null);
-      setAiResult(null);
+      setCvResult(null);
       setDescription('');
       setLocationName('');
       onClose();
@@ -274,7 +274,7 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
                 <img src={imagePreview} alt="Flood evidence preview" className="w-full h-44 object-cover" />
                 <button
                   type="button"
-                  onClick={() => { setImagePreview(null); setAiResult(null); setErrorMsg(''); }}
+                  onClick={() => { setImagePreview(null); setCvResult(null); setErrorMsg(''); }}
                   className="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-slate-900 rounded-full text-slate-300 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
@@ -298,23 +298,23 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
             )}
 
             {/* Visual Verification Badge */}
-            {aiResult && (
+            {cvResult && (
               <div className={`p-3.5 rounded-2xl border transition-all ${
-                aiResult.is_flood 
+                cvResult.is_flood 
                   ? 'bg-emerald-950/50 border-emerald-500/60 text-emerald-200' 
                   : 'bg-red-950/60 border-red-500/70 text-red-200'
               }`}>
                 <div className="flex items-start gap-2.5">
-                  {aiResult.is_flood ? (
+                  {cvResult.is_flood ? (
                     <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                   ) : (
                     <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                   )}
                   <div className="space-y-1">
                     <div className="font-extrabold flex items-center gap-2">
-                      {aiResult.is_flood ? (
+                      {cvResult.is_flood ? (
                         <span className="text-emerald-300 flex items-center gap-1 text-xs sm:text-sm">
-                          ✅ Visual Verification Passed ({aiResult.confidence}% Feature Match)
+                          ✅ Visual Verification Passed ({cvResult.confidence}% Feature Match)
                         </span>
                       ) : (
                         <span className="text-red-300 flex items-center gap-1 text-xs sm:text-sm">
@@ -323,14 +323,14 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
                       )}
                     </div>
 
-                    {aiResult.detected_elements && (
+                    {cvResult.detected_elements && (
                       <p className="text-[11px] font-medium opacity-90">
-                        <strong className="font-semibold text-slate-300">Detected Features:</strong> {aiResult.detected_elements}
+                        <strong className="font-semibold text-slate-300">Detected Features:</strong> {cvResult.detected_elements}
                       </p>
                     )}
 
                     <p className="text-[11px] leading-relaxed opacity-90">
-                      {aiResult.reason || aiResult.reasoning}
+                      {cvResult.reason || cvResult.reasoning}
                     </p>
                   </div>
                 </div>
@@ -450,9 +450,9 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
           {/* Submit Trigger */}
           <button
             type="submit"
-            disabled={isSubmitting || (imagePreview && aiResult?.is_flood === false) || isAnalyzing}
+            disabled={isSubmitting || (imagePreview && cvResult?.is_flood === false) || isAnalyzing}
             className={`mt-2 w-full py-3 px-4 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              imagePreview && aiResult?.is_flood === false
+              imagePreview && cvResult?.is_flood === false
                 ? 'bg-slate-900 border border-red-500/50 text-red-300 cursor-not-allowed opacity-75'
                 : 'bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 hover:from-red-500 hover:to-amber-500 shadow-red-900/30 active:scale-98 disabled:opacity-60'
             }`}
@@ -462,7 +462,7 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Publishing Incident Report...</span>
               </>
-            ) : imagePreview && aiResult?.is_flood === false ? (
+            ) : imagePreview && cvResult?.is_flood === false ? (
               <>
                 <AlertTriangle className="w-4.5 h-4.5 text-red-400" />
                 <span>Submit Disabled - Upload Valid Flood Photo</span>
