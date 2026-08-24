@@ -7,7 +7,7 @@ from openpyxl.utils import get_column_letter
 def create_qa_report():
     # Ensure docs directory exists
     os.makedirs("docs", exist_ok=True)
-    output_path = os.path.join("docs", "FloodSpot_Automation_Test_Report_1200.xlsx")
+    output_path = os.path.join("docs", "Automation Testing 1200.xlsx")
 
     wb = openpyxl.Workbook()
     # Remove default sheet
