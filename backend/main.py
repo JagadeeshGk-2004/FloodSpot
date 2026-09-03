@@ -89,6 +89,7 @@ class ImagePayload(BaseModel):
 
 @app.post("/api/verify", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
 @app.post("/api/verify-image", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
+@app.post("/api/reports/verify", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
 async def verify_image_endpoint(
     file: Optional[UploadFile] = File(None),
     payload: Optional[ImagePayload] = None

@@ -273,7 +273,7 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
                 <div className="p-4 rounded-2xl bg-emerald-950/40 border border-[#10B981] text-[#10B981] space-y-1">
                   <div className="font-extrabold flex items-center gap-2 text-xs sm:text-sm">
                     <ShieldCheck className="w-4.5 h-4.5 text-[#10B981] shrink-0" />
-                    <span>✓ Visual Verification Passed ({Math.round((cvResult.confidence > 1 ? cvResult.confidence / 100 : cvResult.confidence) * 100)}% Confidence)</span>
+                    <span>✓ Visual Verification Passed (Hydro Depth Engine)</span>
                   </div>
                   {cvResult.detected_features && cvResult.detected_features.length > 0 && (
                     <p className="text-[11px] text-emerald-200/90 pl-6">

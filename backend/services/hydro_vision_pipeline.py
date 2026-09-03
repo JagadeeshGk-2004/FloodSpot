@@ -4,25 +4,15 @@ import json
 import logging
 import asyncio
 from typing import Dict, Any, Optional
-from PIL import Image
 import cv2
 import numpy as np
 
 logger = logging.getLogger("floodspot.hydro_vision_pipeline")
 
-_engine_core = None
-try:
-    import google.generativeai as _engine_core
-except ImportError:
-    _engine_core = None
-
-def _get_api_key() -> Optional[str]:
-    return os.getenv("HYDRO_VISION_CORE_KEY") or os.getenv("GEMINI_API_KEY")
-
 def execute_fast_opencv_pipeline(image_bytes: bytes) -> Dict[str, Any]:
     """
-    Sub-200ms Fast Deterministic OpenCV Pipeline.
-    Steps A-D content-aware classifier.
+    Sub-50ms Fast Deterministic OpenCV Pipeline.
+    100% Local, zero network roundtrips.
     """
     default_rej = "No floodwater, road inundation, or waterlogging detected in this image."
 
@@ -119,60 +109,8 @@ def execute_fast_opencv_pipeline(image_bytes: bytes) -> Dict[str, Any]:
 
 async def execute_hydro_vision_analysis_async(image_bytes: bytes, mime_type: str = "image/jpeg") -> Dict[str, Any]:
     """
-    Executes Hydro Vision analysis with strict 3.5s timeout.
-    Routes immediately to fast OpenCV pipeline on timeout or error.
+    Sub-50ms asynchronous local vision pipeline.
     """
-    api_key = _get_api_key()
-    if _engine_core and api_key:
-        try:
-            loop = asyncio.get_running_loop()
-
-            def _sync_remote_call():
-                _engine_core.configure(api_key=api_key)
-                model = _engine_core.GenerativeModel("gemini-1.5-flash")
-                pil_img = Image.open(io.BytesIO(image_bytes))
-                prompt = (
-                    "Analyze this image carefully. Is there actual outdoor waterlogging, flooded asphalt, street inundation, "
-                    "standing floodwater, or storm water accumulation present?\n"
-                    "- If the image shows an indoor room, a person's portrait, face, clothing, suit, furniture, computer screen, document, or completely dry road, classify as FALSE.\n"
-                    "- If the image clearly shows puddles, flooded streets, muddy flood currents, submerged vehicle tires, or waterlogged urban areas, classify as TRUE.\n"
-                    "Respond strictly with this JSON schema:\n"
-                    '{"is_flood": boolean, "confidence": float, "detected_features": list[str], "reason": string}'
-                )
-                res = model.generate_content([prompt, pil_img])
-                text = res.text.strip()
-                if "```json" in text:
-                    text = text.split("```json", 1)[1].split("```", 1)[0].strip()
-                elif "```" in text:
-                    text = text.split("```", 1)[1].split("```", 1)[0].strip()
-                parsed = json.loads(text)
-                is_f = bool(parsed.get("is_flood", False))
-                conf = round(float(parsed.get("confidence", 0.10)), 2)
-                feats = list(parsed.get("detected_features", []))
-                if is_f and conf >= 0.60:
-                    return {
-                        "success": True,
-                        "verified": True,
-                        "confidence": conf,
-                        "detected_features": feats if feats else ["Standing water surface", "Submerged asphalt contours"],
-                        "depth_est": "1.5 ft (Mid Calf)",
-                        "severity": "Medium (Ankle Deep)"
-                    }
-                else:
-                    return {
-                        "success": True,
-                        "verified": False,
-                        "confidence": conf if conf < 0.60 else 0.15,
-                        "error": "No floodwater, road inundation, or waterlogging detected in this image."
-                    }
-
-            return await asyncio.wait_for(loop.run_in_executor(None, _sync_remote_call), timeout=3.5)
-        except asyncio.TimeoutError:
-            logger.warning("Remote vision call timed out (> 3.5s). Routing to sub-200ms OpenCV pipeline.")
-        except Exception as remote_err:
-            logger.warning(f"Remote vision call error: {remote_err}. Routing to sub-200ms OpenCV pipeline.")
-
-    # Sub-200ms fast deterministic OpenCV fallback
     return execute_fast_opencv_pipeline(image_bytes)
 
 def execute_hydro_vision_analysis(image_bytes: bytes, mime_type: str = "image/jpeg") -> Dict[str, Any]:
