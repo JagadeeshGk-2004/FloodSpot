@@ -81,32 +81,49 @@ import base64
 from pydantic import BaseModel, Field
 from services.cv_service import verify_flood_image
 
+from fastapi import UploadFile, File, Form
+from typing import Optional
+
 class ImagePayload(BaseModel):
-    image_base64: str = Field(..., description="Base64 image data string")
+    image_base64: Optional[str] = Field(None, description="Base64 image data string")
 
 @app.post("/api/verify", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
 @app.post("/api/verify-image", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
-async def verify_image_endpoint(payload: ImagePayload) -> Dict[str, Any]:
+async def verify_image_endpoint(
+    file: Optional[UploadFile] = File(None),
+    payload: Optional[ImagePayload] = None
+) -> Dict[str, Any]:
     """
     Direct Hydro Depth Engine verification endpoint.
-    Returns { "verified": bool, "confidence": float, "detected_features": list, "message": str }.
+    Accepts FormData (file) or JSON (image_base64).
     """
     try:
-        raw_b64 = payload.image_base64
-        if "," in raw_b64:
-            raw_b64 = raw_b64.split(",", 1)[1]
-        image_bytes = base64.b64decode(raw_b64)
+        image_bytes = None
+        if file is not None:
+            image_bytes = await file.read()
+        elif payload and payload.image_base64:
+            raw_b64 = payload.image_base64
+            if "," in raw_b64:
+                raw_b64 = raw_b64.split(",", 1)[1]
+            image_bytes = base64.b64decode(raw_b64)
+
+        if not image_bytes:
+            return {
+                "verified": False,
+                "confidence": 0.10,
+                "detected_features": [],
+                "error": "Verification Failed: No image buffer provided."
+            }
+
         result = verify_flood_image(image_bytes)
         return result
     except Exception as err:
         logger.error(f"Error in verification endpoint: {err}")
         return {
             "verified": False,
-            "is_flood": False,
-            "confidence": 0.10,
+            "confidence": 0.12,
             "detected_features": [],
-            "message": "Image rejected: No waterlogging or flood hazards detected.",
-            "error": "Image rejected: No waterlogging or flood hazards detected."
+            "error": f"Verification Failed: No floodwater, road inundation, or storm hazard detected in this image."
         }
 
 # Core & Weather Endpoints

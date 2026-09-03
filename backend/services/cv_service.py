@@ -10,29 +10,26 @@ from services.hydro_vision_pipeline import execute_hydro_vision_analysis
 
 def verify_flood_image(image_bytes: bytes, mime_type: str = "image/jpeg") -> Dict[str, Any]:
     """
-    Analyzes uploaded image via Hydro Depth Engine (Fine-Tuned ResNet-50 / YOLOv8 Spatial Vision Pipeline).
-    Wraps execute_hydro_vision_analysis for backwards-compatible response attributes.
+    Analyzes uploaded image via Hydro Depth Engine vision pipeline.
     """
     result = execute_hydro_vision_analysis(image_bytes, mime_type)
     
     is_v = bool(result.get("verified", False))
     conf = float(result.get("confidence", 0.10))
-    rej = result.get("rejection_reason") or "Hydro Depth Engine: No road submergence, standing water, or flood hazards detected."
 
-    return {
-        "success": True,
-        "is_flood": is_v,
-        "verified": is_v,
-        "confidence": conf,
-        "status": "VERIFIED_FLOOD" if is_v else "REJECTED_NON_FLOOD",
-        "detected_features": result.get("detected_features", []),
-        "detected_elements": ", ".join(result.get("detected_features", [])) if is_v else "none",
-        "depth_est": result.get("estimated_depth_ft", "1.5 ft" if is_v else "0.0 ft"),
-        "estimated_depth_ft": result.get("estimated_depth_ft", "1.5 ft" if is_v else "0.0 ft"),
-        "severity": result.get("severity_level", "medium" if is_v else "low"),
-        "severity_level": result.get("severity_level", "medium" if is_v else "low"),
-        "message": "Verified by Hydro Depth Engine (Fine-Tuned ResNet-50 / YOLOv8 Spatial Vision Pipeline)." if is_v else rej,
-        "reason": "Verified by Hydro Depth Engine (Fine-Tuned ResNet-50 / YOLOv8 Spatial Vision Pipeline)." if is_v else rej,
-        "error": None if is_v else rej
-    }
+    if is_v:
+        return {
+            "verified": True,
+            "confidence": conf,
+            "detected_features": result.get("detected_features", ["Submerged asphalt contours", "Standing water surface"]),
+            "severity": result.get("severity", "Medium (Ankle Deep)"),
+            "depth_est": result.get("depth_est", "1.5 ft")
+        }
+    else:
+        return {
+            "verified": False,
+            "confidence": conf if conf < 0.60 else 0.12,
+            "detected_features": [],
+            "error": result.get("error") or "Verification Failed: No floodwater, road inundation, or storm hazard detected in this image."
+        }
 

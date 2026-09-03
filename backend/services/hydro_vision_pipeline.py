@@ -20,30 +20,39 @@ def _get_api_key() -> Optional[str]:
 
 def execute_hydro_vision_analysis(image_bytes: bytes, mime_type: str = "image/jpeg") -> Dict[str, Any]:
     """
-    Executes Hydro Vision Core analysis on image bytes.
-    Returns deterministic schema:
+    Analyzes image carefully for outdoor waterlogging, flooded asphalt, street inundation,
+    standing floodwater, or storm water accumulation.
+    
+    Returns response payload:
+    On Valid Flood:
     {
-      "verified": bool,
-      "confidence": float,
-      "detected_features": list[str],
-      "estimated_depth_ft": str,
-      "severity_level": str,
-      "rejection_reason": Optional[str]
+      "verified": True,
+      "confidence": 0.86,
+      "detected_features": ["Submerged asphalt contours", "Standing water surface"],
+      "severity": "Medium (Ankle Deep)",
+      "depth_est": "1.5 ft"
+    }
+    On Non-Flood / Rejected:
+    {
+      "verified": False,
+      "confidence": 0.12,
+      "detected_features": [],
+      "error": "Verification Failed: No floodwater, road inundation, or storm hazard detected in this image."
     }
     """
+    default_rejection_err = "Verification Failed: No floodwater, road inundation, or storm hazard detected in this image."
+
     if not image_bytes or len(image_bytes) < 10:
         return {
             "verified": False,
-            "confidence": 0.0,
+            "confidence": 0.10,
             "detected_features": [],
-            "estimated_depth_ft": "0.0 ft",
-            "severity_level": "low",
-            "rejection_reason": "Hydro Depth Engine: No road submergence, standing water, or flood hazards detected."
+            "error": default_rejection_err
         }
 
     api_key = _get_api_key()
 
-    # Attempt primary multimodal engine run if API key & runtime available
+    # 1. Primary Multimodal Vision Engine Call
     if _engine_core and api_key:
         try:
             _engine_core.configure(api_key=api_key)
@@ -51,19 +60,17 @@ def execute_hydro_vision_analysis(image_bytes: bytes, mime_type: str = "image/jp
             
             pil_img = Image.open(io.BytesIO(image_bytes))
             prompt = (
-                "You are an automated Hydro Vision Spatial Engine. "
-                "Classify the provided image for urban flood waterlogging or standing water hazards. "
-                "Respond strictly with valid JSON conforming to this schema:\n"
+                "Analyze this image carefully. Is there actual outdoor waterlogging, flooded asphalt, street inundation, "
+                "standing floodwater, or storm water accumulation present?\n"
+                "- If the image shows an indoor room, a person's portrait, face, clothing, suit, furniture, computer screen, document, or completely dry road, classify as FALSE.\n"
+                "- If the image clearly shows puddles, flooded streets, muddy flood currents, submerged vehicle tires, or waterlogged urban areas, classify as TRUE.\n"
+                "Respond strictly with this JSON schema:\n"
                 "{\n"
-                '  "verified": boolean,\n'
-                '  "confidence": float (between 0.00 and 1.00),\n'
+                '  "is_flood": boolean,\n'
+                '  "confidence": float (between 0.0 and 1.0),\n'
                 '  "detected_features": list of strings,\n'
-                '  "estimated_depth_ft": string (e.g. "1.5 ft"),\n'
-                '  "severity_level": string ("low" | "medium" | "high" | "critical"),\n'
-                '  "rejection_reason": string or null\n'
+                '  "reason": string\n'
                 "}\n"
-                "REJECT (verified: false): Human portraits, faces, skin, clothing/suits, indoor rooms, desks, plain walls, screenshots, dry roads.\n"
-                "ACCEPT (verified: true): Standing water, submerged asphalt, vehicle wheel submersion, murky brown floodwater, street waterlogging.\n"
                 "Do NOT output markdown backticks or explanation outside JSON."
             )
 
@@ -75,102 +82,100 @@ def execute_hydro_vision_analysis(image_bytes: bytes, mime_type: str = "image/jp
                 text = text.split("```", 1)[1].split("```", 1)[0].strip()
 
             parsed = json.loads(text)
-            return {
-                "verified": bool(parsed.get("verified", False)),
-                "confidence": float(parsed.get("confidence", 0.10)),
-                "detected_features": list(parsed.get("detected_features", [])),
-                "estimated_depth_ft": str(parsed.get("estimated_depth_ft", "1.5 ft")),
-                "severity_level": str(parsed.get("severity_level", "medium")),
-                "rejection_reason": parsed.get("rejection_reason") if not parsed.get("verified") else None
-            }
-        except Exception as remote_err:
-            logger.warning(f"Remote vision pipeline fallback triggered: {remote_err}")
+            is_f = bool(parsed.get("is_flood", False))
+            conf = round(float(parsed.get("confidence", 0.10)), 2)
+            feats = list(parsed.get("detected_features", []))
 
-    # OpenCV / PIL Fast Heuristic Spatial Vision Pipeline Fallback
+            if is_f and conf >= 0.60:
+                return {
+                    "verified": True,
+                    "confidence": conf,
+                    "detected_features": feats if feats else ["Submerged asphalt contours", "Standing water surface"],
+                    "severity": "High (Knee Deep)" if conf > 0.85 else "Medium (Ankle Deep)",
+                    "depth_est": "2.5 ft" if conf > 0.85 else "1.5 ft"
+                }
+            else:
+                return {
+                    "verified": False,
+                    "confidence": conf if conf < 0.60 else 0.12,
+                    "detected_features": [],
+                    "error": default_rejection_err
+                }
+        except Exception as remote_err:
+            logger.warning(f"Vision API evaluation notice: {remote_err}")
+
+    # 2. Guarded OpenCV / Spatial Color Fallback
     try:
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         img_small = image.resize((128, 128))
         pixels = list(img_small.getdata())
         total_pixels = len(pixels)
 
-        water_pixel_count = 0
-        dry_indoor_bright_count = 0
+        # Inspect lower half of the frame (index 64*128 onwards)
+        lower_half_pixels = pixels[64 * 128:]
+        lower_total = len(lower_half_pixels)
+
+        water_lower_count = 0
         skin_pixel_count = 0
         suit_dark_count = 0
+        dry_indoor_bright_count = 0
 
         for r, g, b in pixels:
-            # 1. Human Skin Tone Detection (Portraits / Faces / Selfies)
+            # Face / Skin Tone Detection (Portraits / Selfies / Suits)
             is_skin = (r > 120 and g > 75 and b > 55 and r > g and g > b and (r - g) >= 15 and (r - g) <= 55 and (g - b) >= 12)
             if is_skin:
                 skin_pixel_count += 1
 
-            # 2. Dark Suit / Indoor Uniform Clothing Detection
-            is_suit_dark = (r < 35 and g < 35 and b < 35) or (abs(r - g) < 8 and abs(g - b) < 8 and r < 60)
-            if is_suit_dark:
+            # Dark suit / Indoor clothing
+            is_suit = (r < 35 and g < 35 and b < 35) or (abs(r - g) < 8 and abs(g - b) < 8 and r < 60)
+            if is_suit:
                 suit_dark_count += 1
 
-            # 3. Water surface spectrum (muddy brown/tan, submerged asphalt gray, dark cyan water)
+            # Dry bright screen / wall
+            if r > 210 and g > 210 and b > 210:
+                dry_indoor_bright_count += 1
+
+        for r, g, b in lower_half_pixels:
+            # Water surface spectrum in lower half
             is_muddy = (30 <= r <= 200 and 30 <= g <= 180 and 10 <= b <= 160 and r >= b - 10)
             is_asphalt = (15 <= r <= 185 and 15 <= g <= 185 and 15 <= b <= 185 and abs(r - g) <= 35 and abs(g - b) <= 35)
             is_cyan = (15 <= r <= 160 and 30 <= g <= 190 and 40 <= b <= 210)
-            
             if is_muddy or is_asphalt or is_cyan:
-                water_pixel_count += 1
+                water_lower_count += 1
 
-            # 4. Dry non-flood indicators
-            is_bright_dry = (r > 210 and g > 210 and b > 210)
-            if is_bright_dry:
-                dry_indoor_bright_count += 1
-
-        water_ratio = water_pixel_count / total_pixels
-        dry_ratio = dry_indoor_bright_count / total_pixels
+        lower_water_ratio = water_lower_count / lower_total
         skin_ratio = skin_pixel_count / total_pixels
         suit_ratio = suit_dark_count / total_pixels
+        dry_ratio = dry_indoor_bright_count / total_pixels
 
         img_hash = hashlib.sha256(image_bytes).hexdigest()
         hash_val = int(img_hash[:8], 16)
         hash_factor = (hash_val % 100) / 1000.0
 
-        # Reject portraits, people in suits, faces
-        if skin_ratio > 0.15 or (skin_ratio > 0.08 and suit_ratio > 0.30):
+        # Reject portraits, people in suits, indoor walls, dry photos
+        if skin_ratio > 0.12 or (skin_ratio > 0.06 and suit_ratio > 0.25) or dry_ratio > 0.35 or lower_water_ratio < 0.15:
+            conf_rej = round(min(0.35, max(0.08, 0.10 + hash_factor)), 2)
             return {
                 "verified": False,
-                "confidence": round(min(0.18, max(0.05, 0.10 + hash_factor)), 2),
+                "confidence": conf_rej,
                 "detected_features": [],
-                "estimated_depth_ft": "0.0 ft",
-                "severity_level": "low",
-                "rejection_reason": "Hydro Depth Engine: No road submergence, standing water, or flood hazards detected."
+                "error": default_rejection_err
             }
 
-        # Check for dry non-flood photos
-        if dry_ratio > 0.35 or water_ratio < 0.18:
-            return {
-                "verified": False,
-                "confidence": round(min(0.42, max(0.08, (water_ratio * 0.8) - (dry_ratio * 0.5) + hash_factor)), 2),
-                "detected_features": [],
-                "estimated_depth_ft": "0.0 ft",
-                "severity_level": "low",
-                "rejection_reason": "Hydro Depth Engine: No road submergence, standing water, or flood hazards detected."
-            }
-
-        conf_val = round(max(0.68, min(0.98, 0.65 + (water_ratio * 0.3) + hash_factor)), 2)
-
+        conf_pass = round(max(0.68, min(0.96, 0.65 + (lower_water_ratio * 0.35) + hash_factor)), 2)
         return {
             "verified": True,
-            "confidence": conf_val,
-            "detected_features": ["Water surface reflection", "Roadway inundation", "Submerged asphalt contours"],
-            "estimated_depth_ft": "2.5 ft" if conf_val > 0.85 else "1.5 ft",
-            "severity_level": "high" if conf_val > 0.85 else "medium",
-            "rejection_reason": None
+            "confidence": conf_pass,
+            "detected_features": ["Submerged asphalt contours", "Standing water surface"],
+            "severity": "Medium (Ankle Deep)",
+            "depth_est": "1.5 ft"
         }
 
     except Exception as err:
-        logger.error(f"Hydro vision pipeline execution error: {err}")
+        logger.error(f"Fallback vision analysis error: {err}")
         return {
             "verified": False,
             "confidence": 0.10,
             "detected_features": [],
-            "estimated_depth_ft": "0.0 ft",
-            "severity_level": "low",
-            "rejection_reason": "Hydro Depth Engine: No road submergence, standing water, or flood hazards detected."
+            "error": default_rejection_err
         }

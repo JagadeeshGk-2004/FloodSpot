@@ -1,20 +1,48 @@
 /**
- * Hydro Depth Engine & Spatial Depth Estimator Image Verifier.
- * Executes local Fine-Tuned ResNet-50 / YOLOv8 Spatial Vision Pipeline evaluation.
- * Queries backend FastAPI /api/verify-image endpoint or executes client spatial depth analysis.
+ * Hydro Depth Engine Vision Classifier Integration.
+ * Calls backend FastAPI /api/verify endpoint to evaluate visual evidence.
  *
- * @param {string} base64Image Base64-encoded image string
- * @returns {Promise<{ is_flood: boolean, confidence: number, detected_elements: string, reason: string }>}
+ * @param {string} base64Image Base64 image data string
+ * @returns {Promise<{ verified: boolean, confidence: number, detected_features: string[], error?: str, severity?: str, depth_est?: str }>}
  */
 export async function verifyFloodImage(base64Image) {
-  return {
-    is_flood: true,
-    verified: true,
-    confidence: 0.94,
-    detected_features: ['Surface water accumulation', 'Localized runoff', 'Asphalt reflection'],
-    detected_elements: 'Surface water accumulation, localized runoff, asphalt reflection',
-    message: '✓ Visual Verification Passed (Hydro Depth Engine)',
-    reason: '✓ Visual Verification Passed (Hydro Depth Engine)',
-    error: null
-  };
+  const defaultErrorMsg = "Verification Failed: No floodwater, road inundation, or storm hazard detected in this image.";
+
+  if (!base64Image) {
+    return {
+      verified: false,
+      confidence: 0.10,
+      detected_features: [],
+      error: defaultErrorMsg
+    };
+  }
+
+  try {
+    const res = await fetch('http://localhost:8000/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: base64Image })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    }
+
+    const errBody = await res.json().catch(() => ({}));
+    return {
+      verified: false,
+      confidence: 0.12,
+      detected_features: [],
+      error: errBody.error || errBody.detail || defaultErrorMsg
+    };
+  } catch (err) {
+    console.warn('[cvEngine] Backend API query notice:', err);
+    return {
+      verified: false,
+      confidence: 0.12,
+      detected_features: [],
+      error: defaultErrorMsg
+    };
+  }
 }

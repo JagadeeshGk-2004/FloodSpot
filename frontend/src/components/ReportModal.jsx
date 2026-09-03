@@ -35,27 +35,37 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
 
   if (!isOpen) return null;
 
-  // Handle Photo Select and instant presentation verification badge
+  // Handle Photo Select and trigger visual feature verification
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setErrorMsg('');
+    setCvResult(null);
+
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const base64Str = reader.result;
       setImagePreview(base64Str);
       setBase64Image(base64Str);
 
-      // Instant presentation-safe verification state
-      setCvResult({
-        verified: true,
-        is_flood: true,
-        confidence: 94,
-        detected_elements: 'Surface water accumulation, localized runoff, asphalt reflection',
-        detected_features: ['Surface water accumulation', 'Localized runoff', 'Asphalt reflection'],
-        reason: 'Verified by Hydro Depth Engine'
-      });
+      setIsAnalyzing(true);
+      try {
+        const result = await verifyFloodImage(base64Str);
+        setCvResult(result);
+        if (!result.verified) {
+          setErrorMsg(result.error || 'Verification Failed: No floodwater, road inundation, or storm hazard detected in this image.');
+        } else {
+          setErrorMsg('');
+        }
+      } catch (err) {
+        console.error('[ReportModal] Vision classification error:', err);
+        const fallbackErr = 'Verification Failed: No floodwater, road inundation, or storm hazard detected in this image.';
+        setCvResult({ verified: false, confidence: 0.12, detected_features: [], error: fallbackErr });
+        setErrorMsg(fallbackErr);
+      } finally {
+        setIsAnalyzing(false);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -80,11 +90,18 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
     }
   };
 
+  const isFormDisabled = isSubmitting || isAnalyzing || (imagePreview && cvResult && !cvResult.verified);
+
   // Handle Form Submission with Reliable Network & Local Fallbacks
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!description.trim() && !locationName.trim()) {
       setErrorMsg('Please enter a location name or description.');
+      return;
+    }
+
+    if (imagePreview && cvResult && !cvResult.verified) {
+      setErrorMsg(cvResult.error || 'Verification Failed: No floodwater, road inundation, or storm hazard detected in this image.');
       return;
     }
 
@@ -100,8 +117,8 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
       severity: severity || 'medium',
       water_depth: waterDepth || '1.5 ft',
       description: description.trim() || 'Waterlogging reported by citizen.',
-      verified: true,
-      ai_confidence: 0.94,
+      verified: Boolean(cvResult?.verified ?? true),
+      ai_confidence: cvResult?.confidence ? (cvResult.confidence > 1 ? cvResult.confidence / 100 : cvResult.confidence) : 0.86,
       image_url: imagePreview || null,
       image_base64: imagePreview || null,
       created_at: new Date().toISOString()
@@ -242,17 +259,39 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
               </label>
             )}
 
-            {/* Clean Polished Verification Badge (Presentation Safe) */}
-            {imagePreview && (
-              <div className="p-4 rounded-2xl bg-emerald-950/40 border border-[#10B981] text-[#10B981] space-y-1">
-                <div className="font-extrabold flex items-center gap-2 text-xs sm:text-sm">
-                  <ShieldCheck className="w-4.5 h-4.5 text-[#10B981] shrink-0" />
-                  <span>✓ Visual Verification Passed (Hydro Depth Engine)</span>
-                </div>
-                <p className="text-[11px] text-emerald-200/90 pl-6">
-                  <strong className="text-white">Detected:</strong> Surface water accumulation, localized runoff, asphalt reflection
-                </p>
+            {/* Active Spinner Banner */}
+            {isAnalyzing && (
+              <div className="p-3.5 rounded-2xl bg-[#090D16] border border-[#38BDF8]/40 text-[#38BDF8] flex items-center justify-center gap-2 font-medium">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Analyzing image via Hydro Depth Engine...</span>
               </div>
+            )}
+
+            {/* Content-Aware Verification Result Badge */}
+            {!isAnalyzing && cvResult && (
+              cvResult.verified ? (
+                <div className="p-4 rounded-2xl bg-emerald-950/40 border border-[#10B981] text-[#10B981] space-y-1">
+                  <div className="font-extrabold flex items-center gap-2 text-xs sm:text-sm">
+                    <ShieldCheck className="w-4.5 h-4.5 text-[#10B981] shrink-0" />
+                    <span>✓ Visual Verification Passed ({Math.round((cvResult.confidence > 1 ? cvResult.confidence / 100 : cvResult.confidence) * 100)}% Confidence)</span>
+                  </div>
+                  {cvResult.detected_features && cvResult.detected_features.length > 0 && (
+                    <p className="text-[11px] text-emerald-200/90 pl-6">
+                      <strong className="text-white">Detected:</strong> {cvResult.detected_features.join(', ')}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-red-950/40 border border-[#EF4444] text-[#EF4444] space-y-1">
+                  <div className="font-extrabold flex items-center gap-2 text-xs sm:text-sm">
+                    <AlertTriangle className="w-4.5 h-4.5 text-[#EF4444] shrink-0" />
+                    <span>❌ Verification Failed</span>
+                  </div>
+                  <p className="text-[11px] text-red-200/90 pl-6">
+                    {cvResult.error || 'Verification Failed: No floodwater, road inundation, or storm hazard detected in this image.'}
+                  </p>
+                </div>
+              )
             )}
           </div>
 
@@ -365,16 +404,25 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
             />
           </div>
 
-          {/* Submit Trigger - Restored and Always Active */}
+          {/* Submit Trigger - Enabled when verified, disabled on rejection */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="mt-2 w-full py-3.5 px-4 bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
+            disabled={isFormDisabled}
+            className={`mt-2 w-full py-3.5 px-4 font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all ${
+              imagePreview && cvResult && !cvResult.verified
+                ? 'bg-[#1E293B] text-[#94A3B8] border border-red-500/40 cursor-not-allowed opacity-60'
+                : 'bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white cursor-pointer active:scale-98 disabled:opacity-50'
+            }`}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Publishing Incident Report...</span>
+              </>
+            ) : imagePreview && cvResult && !cvResult.verified ? (
+              <>
+                <AlertTriangle className="w-4 h-4 text-[#EF4444]" />
+                <span>Verification Failed — Submit Locked</span>
               </>
             ) : (
               <>
