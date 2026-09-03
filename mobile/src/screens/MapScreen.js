@@ -279,9 +279,9 @@ export default function MapScreen() {
 
           var map = L.map('map', { zoomControl: false }).setView([userLoc.latitude, userLoc.longitude], 13);
           
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: 'CartoDB'
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 16,
+            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
           }).addTo(map);
 
           // Listen for Fly-To messages
@@ -391,7 +391,13 @@ export default function MapScreen() {
           <Text style={styles.brandTitle}>FloodSpot</Text>
         </View>
 
-        <WeatherPill weather={weatherData} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={styles.statusBadgePill}>
+            <View style={styles.statusBadgeDot} />
+            <Text style={styles.statusBadgePillText}>Hydro Depth Active</Text>
+          </View>
+          <WeatherPill weather={weatherData} />
+        </View>
       </View>
 
       {/* Floating Nominatim Search Bar */}
@@ -572,11 +578,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 14,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backgroundColor: COLORS.card,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
   },
   brandGroup: {
     flexDirection: 'row',
@@ -594,9 +600,31 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(56, 189, 248, 0.3)',
   },
   brandTitle: {
-    color: '#FFF',
+    color: COLORS.textPrimary,
     fontSize: 17,
     fontWeight: '800',
+  },
+  statusBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderColor: '#10B981',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 14,
+  },
+  statusBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
+  statusBadgePillText: {
+    color: '#10B981',
+    fontSize: 10,
+    fontWeight: '700',
   },
   searchContainer: {
     position: 'absolute',
@@ -608,10 +636,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     paddingHorizontal: 12,
     height: 44,
   },
@@ -624,8 +652,9 @@ const styles = StyleSheet.create({
     marginTop: 6,
     borderRadius: 16,
     padding: 8,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -634,7 +663,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: COLORS.border,
   },
   dropdownTitle: {
     color: COLORS.textPrimary,
@@ -642,7 +671,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dropdownSub: {
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     fontSize: 10,
   },
   layersContainer: {
@@ -657,19 +686,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backgroundColor: COLORS.card,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
   },
   layerChipActive: {
     backgroundColor: COLORS.skyBlue,
     borderColor: COLORS.skyBlue,
   },
   layerChipText: {
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -683,11 +712,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    backgroundColor: COLORS.card,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     zIndex: 20,
     ...SHADOWS.card,
   },

@@ -34,10 +34,11 @@ const CHENNAI_CENTER = [13.0827, 80.2707];
 const DEFAULT_ZOOM = 13;
 const FLY_TO_ZOOM = 15.5;
 
-// Single High-Performance Dark Emergency Map Tile Configuration
+// High-Performance Esri Dark Gray Canvas Map Tile Configuration (Zero Keys, Zero Watermarks)
 const DARK_MAP_TILE = {
-  url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+  maxZoom: 16,
 };
 
 // Initial Mock Hotspots / Rescue Shelters in Chennai
@@ -365,7 +366,7 @@ export default function Map({
         center={CHENNAI_CENTER}
         zoom={DEFAULT_ZOOM}
         minZoom={5}
-        maxZoom={19}
+        maxZoom={16}
         maxBounds={[[5.0, 68.0], [38.0, 97.0]]}
         maxBoundsViscosity={1.0}
         scrollWheelZoom={true}
@@ -373,12 +374,13 @@ export default function Map({
         className="w-full h-full z-0 will-change-transform bg-[#090d16]"
         style={{ backgroundColor: '#090d16', transform: 'translate3d(0,0,0)' }}
       >
-        {/* Single High-Performance Dark Emergency Map Tile Layer */}
+        {/* Esri Dark Gray Canvas Tile Layer (Zero Keys, Zero Watermarks) */}
         <TileLayer
+          key="esri-dark-gray-v2"
           url={DARK_MAP_TILE.url}
           attribution={DARK_MAP_TILE.attribution}
-          maxZoom={19}
-          maxNativeZoom={18}
+          maxZoom={16}
+          maxNativeZoom={16}
           keepBuffer={8}
           updateWhenZooming={false}
           updateWhenIdle={true}
@@ -576,21 +578,21 @@ export default function Map({
       {/* Floating Top Search Bar with OpenStreetMap Nominatim Geocoding API */}
       <div className="absolute top-16 left-4 right-4 z-30 flex flex-col gap-2 max-w-md mx-auto pointer-events-auto">
         <div className="relative">
-          <div className="glass-panel rounded-2xl p-2.5 shadow-2xl flex items-center gap-2 border border-slate-700/50">
+          <div className="glass-panel rounded-2xl p-2.5 shadow-2xl flex items-center gap-2 border border-[#1E293B]">
             <div className="relative flex-1 flex items-center">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+              <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search place or address in India..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => { if (searchResults.length > 0) setShowSearchDropdown(true); }}
-                className="w-full bg-slate-900/60 text-slate-100 placeholder-slate-400 text-xs rounded-xl pl-9 pr-8 py-2 border border-slate-700/60 focus:outline-none focus:border-cyan-500/80 transition-all"
+                className="w-full bg-[#111827] text-[#F8FAFC] placeholder-[#64748B] text-xs rounded-xl pl-9 pr-8 py-2 border border-[#1E293B] focus:outline-none focus:border-[#38BDF8] transition-all"
               />
               {searchQuery && (
                 <button
                   onClick={() => { setSearchQuery(''); setSearchResults([]); setShowSearchDropdown(false); }}
-                  className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-200 cursor-pointer"
+                  className="absolute right-2.5 p-1 text-[#94A3B8] hover:text-[#F8FAFC] cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -600,19 +602,19 @@ export default function Map({
 
           {/* Nominatim Search Dropdown Suggestions */}
           {showSearchDropdown && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 glass-panel rounded-2xl border border-slate-700/80 shadow-2xl overflow-hidden z-40 max-h-60 overflow-y-auto no-scrollbar animate-in fade-in duration-200">
+            <div className="absolute top-full left-0 right-0 mt-1 glass-panel bg-[#111827] rounded-2xl border border-[#1E293B] shadow-2xl overflow-hidden z-40 max-h-60 overflow-y-auto no-scrollbar animate-in fade-in duration-200">
               {searchResults.map((result, idx) => (
                 <button
                   key={`search-res-${idx}`}
                   onClick={() => handleSelectSearchResult(result)}
-                  className="w-full px-3 py-2.5 text-left text-xs text-slate-200 hover:bg-slate-800/80 border-b border-slate-800/60 last:border-0 flex items-start gap-2 cursor-pointer transition-colors"
+                  className="w-full px-3 py-2.5 text-left text-xs text-[#F8FAFC] hover:bg-[#1E293B] border-b border-[#1E293B] last:border-0 flex items-start gap-2 cursor-pointer transition-colors"
                 >
-                  <MapPin className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <MapPin className="w-4 h-4 text-[#38BDF8] shrink-0 mt-0.5" />
                   <div className="truncate">
-                    <span className="font-semibold text-slate-100 block truncate">
+                    <span className="font-semibold text-[#F8FAFC] block truncate">
                       {result.display_name.split(',')[0]}
                     </span>
-                    <span className="text-[10px] text-slate-400 truncate block">
+                    <span className="text-[10px] text-[#94A3B8] truncate block">
                       {result.display_name}
                     </span>
                   </div>
@@ -629,9 +631,9 @@ export default function Map({
           onClick={handleRelocateUser}
           disabled={isLocating}
           title="Relocate Hardware GPS Location"
-          className="p-3 bg-slate-900/90 hover:bg-slate-900 border border-slate-700/80 text-cyan-400 hover:text-cyan-300 rounded-2xl shadow-2xl backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+          className="p-3 bg-[#111827] hover:bg-[#1E293B] border border-[#1E293B] text-[#38BDF8] hover:text-cyan-300 rounded-2xl shadow-2xl backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer disabled:opacity-50"
         >
-          <Crosshair className={`w-5 h-5 ${isLocating ? 'animate-spin text-amber-400' : 'text-cyan-400'}`} />
+          <Crosshair className={`w-5 h-5 ${isLocating ? 'animate-spin text-[#F59E0B]' : 'text-[#38BDF8]'}`} />
         </button>
       </div>
 

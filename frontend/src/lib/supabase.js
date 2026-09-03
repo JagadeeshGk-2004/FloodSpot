@@ -11,83 +11,24 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
-// Initial mock dataset for Chennai flood hotspots
-export const MOCK_FLOOD_REPORTS = [
-  {
-    id: 'mock-1',
-    latitude: 12.9788,
-    longitude: 80.2209,
-    location_name: 'Velachery Bypass Road',
-    severity: 'critical',
-    water_depth: '2.5 ft',
-    description: 'Severe waterlogging under Velachery flyover. Vehicles stalled. Avoid route.',
-    verified: true,
-    ai_confidence: 0.96,
-    created_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-    image_url: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=600&q=80'
-  },
-  {
-    id: 'mock-2',
-    latitude: 13.0405,
-    longitude: 80.2337,
-    location_name: 'T. Nagar (Usman Road)',
-    severity: 'high',
-    water_depth: '1.8 ft',
-    description: 'Knee-deep standing water near Panagal Park. Traffic moving extremely slow.',
-    verified: true,
-    ai_confidence: 0.92,
-    created_at: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
-    image_url: null
-  },
-  {
-    id: 'mock-3',
-    latitude: 13.0334,
-    longitude: 80.2683,
-    location_name: 'Mylapore (Luz Church Rd)',
-    severity: 'medium',
-    water_depth: '1.0 ft',
-    description: 'Water accumulation along curb side. Slow moving traffic.',
-    verified: true,
-    ai_confidence: 0.88,
-    created_at: new Date(Date.now() - 110 * 60 * 1000).toISOString(),
-    image_url: null
-  },
-  {
-    id: 'mock-4',
-    latitude: 12.9229,
-    longitude: 80.1275,
-    location_name: 'Tambaram East',
-    severity: 'critical',
-    water_depth: '3.0 ft',
-    description: 'Residential street submerged. Emergency assistance deployed nearby.',
-    verified: true,
-    ai_confidence: 0.98,
-    created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    image_url: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=600&q=80'
-  },
-  {
-    id: 'mock-5',
-    latitude: 12.9698,
-    longitude: 80.2435,
-    location_name: 'OMR Perungudi Toll',
-    severity: 'low',
-    water_depth: '0.5 ft',
-    description: 'Minor puddle formation on service lane. Passable with caution.',
-    verified: false,
-    ai_confidence: 0.74,
-    created_at: new Date(Date.now() - 180 * 60 * 1000).toISOString(),
-    image_url: null
-  }
-];
+export const MOCK_FLOOD_REPORTS = [];
 
 /**
- * Fetch all flood reports from Supabase.
- * Falls back gracefully to mock reports if table is uninitialized or network fails.
+ * Fetch all flood reports from Supabase / API backend.
+ * Returns genuine user-submitted reports or empty array.
  */
 export async function fetchFloodReports() {
   if (!supabase) {
-    console.warn('[FloodSpot] Supabase credentials missing. Returning fallback mock dataset.');
-    return MOCK_FLOOD_REPORTS;
+    try {
+      const apiRes = await fetch('http://localhost:8000/api/reports');
+      if (apiRes.ok) {
+        const reports = await apiRes.json();
+        return reports || [];
+      }
+    } catch {
+      // API unreachable
+    }
+    return [];
   }
 
   try {
@@ -96,19 +37,14 @@ export async function fetchFloodReports() {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.warn('[FloodSpot] Could not query Supabase flood_reports table. Using mock dataset.', error.message);
-      return MOCK_FLOOD_REPORTS;
-    }
-
-    if (!data || data.length === 0) {
-      return MOCK_FLOOD_REPORTS;
+    if (error || !data) {
+      return [];
     }
 
     return data;
   } catch (err) {
-    console.error('[FloodSpot] Unexpected error reading flood_reports:', err);
-    return MOCK_FLOOD_REPORTS;
+    console.error('[FloodSpot] Error reading flood_reports:', err);
+    return [];
   }
 }
 

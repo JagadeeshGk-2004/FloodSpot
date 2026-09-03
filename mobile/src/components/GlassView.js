@@ -6,11 +6,11 @@ export const GlassView = ({ children, style, borderRadius = 16, intensity = 'med
   const getBgColor = () => {
     switch (intensity) {
       case 'high':
-        return 'rgba(15, 23, 42, 0.9)';
+        return '#111827';
       case 'low':
-        return 'rgba(30, 41, 59, 0.45)';
+        return 'rgba(17, 24, 39, 0.75)';
       default:
-        return 'rgba(30, 41, 59, 0.68)';
+        return 'rgba(17, 24, 39, 0.92)';
     }
   };
 
@@ -33,7 +33,7 @@ export const GlassView = ({ children, style, borderRadius = 16, intensity = 'med
 
 const styles = StyleSheet.create({
   container: {
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     borderWidth: 1,
     overflow: 'hidden',
   },

@@ -187,12 +187,20 @@ export default function AlertsScreen() {
     const isCritical = item.severity === 'critical';
     const isHigh = item.severity === 'high';
 
+    const rawLoc = item.location_name || item.location;
+    const locTitle = typeof rawLoc === 'object'
+      ? (rawLoc.name || rawLoc.location_name || 'Reported Area')
+      : String(rawLoc || 'Reported Area');
+
     return (
       <GlassView style={styles.incidentCard}>
+        {/* 1. Header row: Location title (single line, ellipsis) on left; Severity pill on right */}
         <View style={styles.cardHeaderRow}>
           <View style={styles.locationContainer}>
             <MapPin size={16} color={COLORS.skyBlue} />
-            <Text style={styles.locationTitle}>{formatString(item.location_name || item.location, 'Reported Area')}</Text>
+            <Text style={styles.locationTitle} numberOfLines={1}>
+              {locTitle}
+            </Text>
           </View>
 
           <View
@@ -215,57 +223,50 @@ export default function AlertsScreen() {
                   : { color: COLORS.mediumYellow },
               ]}
             >
-              {formatString(item.severity, 'HIGH').toUpperCase()}
+              {formatString(item.severity, 'ELEVATED').toUpperCase()}
             </Text>
           </View>
         </View>
 
-        {/* Distance & Time Ago Sub-header */}
-        <View style={styles.metaRow}>
-          <View style={styles.metaBadge}>
-            <Navigation size={12} color={COLORS.skyBlue} />
-            <Text style={styles.metaText}>{formatDistance(distKm)}</Text>
-          </View>
-          <View style={styles.metaBadge}>
-            <Clock size={12} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>{formatTimeAgo(item.created_at)}</Text>
-          </View>
-
-          {item.verified && (
-            <View style={styles.verifiedBadge}>
-              <ShieldCheck size={12} color={COLORS.safeGreen} />
-              <Text style={styles.verifiedBadgeText}>Hydro Depth Engine Verified</Text>
-            </View>
-          )}
+        {/* 2. Verification badge */}
+        <View style={styles.verifiedBadgeRow}>
+          <ShieldCheck size={13} color={COLORS.safeGreen} />
+          <Text style={styles.verifiedBadgeText}>✓ Hydro Depth Engine Verified</Text>
         </View>
 
-        {/* Description */}
-        <Text style={styles.description}>{formatString(item.description, 'Community waterlogging report.')}</Text>
-
-        {/* Photo Image if present */}
-        {item.image_url && (
+        {/* 3. User-uploaded incident image container (180px fixed height) */}
+        {item.image_url ? (
           <Image source={{ uri: item.image_url }} style={styles.cardImage} resizeMode="cover" />
+        ) : (
+          <View style={styles.noImageCard}>
+            <Text style={styles.noImageText}>No Citizen Photo Attached</Text>
+          </View>
         )}
 
-        {/* Upvote & Downvote Footer */}
+        {/* 4. Incident description / citizen report text */}
+        <Text style={styles.description}>{formatString(item.description, 'Community waterlogging report.')}</Text>
+
+        {/* 5. Action row: Confirm & Flag buttons */}
         <View style={styles.cardFooter}>
-          <Text style={styles.verifiedByLabel}>Verified by Community</Text>
+          <Text style={styles.verifiedByLabel}>
+            👍 {item.upvotes || 0} Confirm • 🚩 {item.downvotes || 0} Flagged
+          </Text>
 
           <View style={styles.voteBtnGroup}>
             <TouchableOpacity
               style={styles.voteBtn}
               onPress={() => handleVote(item.id, 'up')}
             >
-              <ThumbsUp size={14} color={COLORS.skyBlue} />
-              <Text style={styles.voteText}>{item.upvotes || 0}</Text>
+              <ThumbsUp size={12} color={COLORS.safeGreen} />
+              <Text style={[styles.voteText, { color: COLORS.safeGreen }]}>Confirm</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.voteBtn}
               onPress={() => handleVote(item.id, 'down')}
             >
-              <ThumbsDown size={14} color={COLORS.textMuted} />
-              <Text style={styles.voteText}>{item.downvotes || 0}</Text>
+              <ThumbsDown size={12} color={COLORS.danger} />
+              <Text style={[styles.voteText, { color: COLORS.danger }]}>Flag Fake</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -344,14 +345,14 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
+    backgroundColor: COLORS.background,
   },
   header: {
     padding: 16,
     paddingTop: 50,
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    backgroundColor: COLORS.card,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderGlass,
+    borderBottomColor: COLORS.border,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -373,10 +374,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(11, 17, 32, 0.8)',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     paddingHorizontal: 12,
     marginBottom: 10,
   },
@@ -394,9 +395,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
-    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    backgroundColor: COLORS.elevated,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
   },
   filterChipActive: {
     backgroundColor: COLORS.skyBlue,
@@ -469,28 +470,47 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  verifiedBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginVertical: 4,
+  },
   verifiedBadgeText: {
     color: COLORS.safeGreen,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  depthText: {
-    color: COLORS.skyBlue,
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
-    marginBottom: 4,
   },
   description: {
     color: COLORS.textSecondary,
     fontSize: 13,
     lineHeight: 18,
-    marginBottom: 8,
+    marginVertical: 4,
   },
   cardImage: {
     width: '100%',
-    height: 160,
+    height: 180,
     borderRadius: 12,
-    marginBottom: 8,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  noImageCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginVertical: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  noImageText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   cardFooter: {
     flexDirection: 'row',

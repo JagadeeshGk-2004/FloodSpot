@@ -56,9 +56,9 @@ const styles = StyleSheet.create({
   card: {
     padding: 12,
     borderRadius: 16,
-    borderColor: 'rgba(56, 189, 248, 0.4)',
+    borderColor: COLORS.border,
     borderWidth: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+    backgroundColor: COLORS.card,
   },
   cardCritical: {
     borderColor: 'rgba(239, 68, 68, 0.7)',

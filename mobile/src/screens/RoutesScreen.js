@@ -273,7 +273,7 @@ export default function RoutesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flex: 1,
@@ -315,10 +315,10 @@ const styles = StyleSheet.create({
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     paddingHorizontal: 12,
   },
   input: {

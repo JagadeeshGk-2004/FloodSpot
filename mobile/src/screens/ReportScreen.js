@@ -178,6 +178,16 @@ export default function ReportScreen({ navigation }) {
         );
       }
     } catch (err) {
+      const isRejection = err.response?.status === 422 || (err.response?.data?.detail && String(err.response.data.detail).includes('Hydro Depth Engine'));
+      if (isRejection) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert(
+          'Verification Failed',
+          'Verification Failed: Image does not contain detectable flood water or storm hazards.'
+        );
+        return;
+      }
+
       const isNetworkErr = err.message && (err.message.includes('Network Error') || err.message.includes('timeout'));
       const errorDetail = isNetworkErr
         ? `Could not reach backend API at ${apiClient.defaults.baseURL}.\n\nPlease ensure:` +
@@ -222,7 +232,7 @@ export default function ReportScreen({ navigation }) {
           ]
         );
       } else {
-        Alert.alert('Report Submission Note', errorDetail);
+        Alert.alert('Verification Failed', errorDetail);
       }
     } finally {
       setSubmitting(false);
@@ -450,19 +460,19 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 100,
     borderRadius: 14,
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: COLORS.card,
     borderWidth: 1.5,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
   },
   cameraBox: {
-    borderColor: 'rgba(56, 189, 248, 0.4)',
+    borderColor: COLORS.border,
   },
   galleryBox: {
-    borderColor: 'rgba(6, 182, 212, 0.4)',
+    borderColor: COLORS.border,
   },
   pickerBoxText: {
     color: COLORS.textSecondary,
@@ -486,25 +496,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backgroundColor: COLORS.card,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
   },
   retakeText: {
-    color: '#FFF',
+    color: COLORS.textPrimary,
     fontSize: 11,
     fontWeight: '600',
   },
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     paddingHorizontal: 12,
   },
   input: {
@@ -514,7 +524,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   coordMeta: {
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     fontSize: 11,
     marginTop: 6,
   },
@@ -525,11 +535,11 @@ const styles = StyleSheet.create({
   },
   depthCard: {
     width: '48%',
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     alignItems: 'center',
   },
   depthCardSelected: {
@@ -560,17 +570,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1.5,
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: COLORS.card,
   },
   severityChipText: {
     fontSize: 12,
     fontWeight: '700',
   },
   textArea: {
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
     padding: 12,
     color: COLORS.textPrimary,
     fontSize: 13,
@@ -581,7 +591,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: COLORS.cyberBlue,
+    backgroundColor: COLORS.emerald,
     paddingVertical: 16,
     borderRadius: 16,
     marginTop: 8,

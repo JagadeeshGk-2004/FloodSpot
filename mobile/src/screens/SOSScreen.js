@@ -209,7 +209,7 @@ export default function SOSScreen() {
 
         {/* Emergency Helplines Direct Dial Section */}
         <GlassView style={styles.helplineSection}>
-          <Text style={styles.sectionTitle}>Emergency Responders Direct Dial</Text>
+          <Text style={styles.sectionTitle}>Disaster Response Dispatch Engine — Direct Dial</Text>
           {HELPLINES.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -237,7 +237,7 @@ export default function SOSScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgDark,
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flex: 1,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerBadgeText: {
-    color: COLORS.danger,
+    color: COLORS.crimson,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: COLORS.danger,
+    backgroundColor: COLORS.crimson,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: COLORS.danger,
+    backgroundColor: COLORS.crimson,
   },
   broadcastSuccessCard: {
     flexDirection: 'row',
@@ -326,11 +326,11 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     marginTop: 20,
-    borderColor: COLORS.safeGreen,
+    borderColor: COLORS.emerald,
     borderWidth: 1.5,
   },
   successTitle: {
-    color: COLORS.safeGreen,
+    color: COLORS.emerald,
     fontSize: 13,
     fontWeight: '800',
   },
@@ -351,12 +351,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: COLORS.card,
     borderRadius: 14,
     padding: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: COLORS.borderGlass,
+    borderColor: COLORS.border,
   },
   phoneIconBox: {
     width: 40,

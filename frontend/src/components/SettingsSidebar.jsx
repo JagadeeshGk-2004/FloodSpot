@@ -170,29 +170,29 @@ export default function SettingsSidebar({
       {/* Dark Backdrop Overlay */}
       <div 
         onClick={onClose}
-        className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-40 transition-opacity duration-300 animate-in fade-in"
+        className="fixed inset-0 bg-[#090D16]/80 backdrop-blur-md z-40 transition-opacity duration-300 animate-in fade-in"
       />
 
       {/* Left Slide-Over Panel Drawer */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-full max-w-sm sm:max-w-md glass-panel border-r border-slate-700/80 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-left duration-300 select-none">
+      <aside className="fixed inset-y-0 left-0 z-50 w-full max-w-sm sm:max-w-md glass-panel bg-[#111827] border-r border-[#1E293B] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-left duration-300 select-none">
         
         {/* Drawer Header Bar */}
-        <div className="glass-panel border-b border-slate-800 px-5 py-4 flex items-center justify-between shrink-0">
+        <div className="glass-panel bg-[#111827] border-b border-[#1E293B] px-5 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+            <div className="w-9 h-9 rounded-xl bg-[#38BDF8]/20 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
               <Settings className="w-5 h-5 animate-spin-slow" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-slate-100 font-['Outfit']">
+              <h3 className="font-extrabold text-base text-[#F8FAFC] font-['Outfit']">
                 Control Center
               </h3>
-              <p className="text-[11px] text-slate-400">Account, Emergency SOS & App Settings</p>
+              <p className="text-[11px] text-[#94A3B8]">Account, Emergency SOS & App Settings</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full hover:bg-[#1E293B] text-[#94A3B8] hover:text-[#F8FAFC] transition-colors cursor-pointer"
             title="Close Drawer"
           >
             <X className="w-5 h-5" />
@@ -204,23 +204,23 @@ export default function SettingsSidebar({
 
           {/* SECTION 1: ACCOUNT & AUTH */}
           <div className="space-y-3">
-            <h4 className="text-[11px] font-extrabold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-[11px] font-extrabold text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5">
               <User className="w-3.5 h-3.5" />
               Account & Authentication
             </h4>
 
-            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3 shadow-md">
+            <div className="p-4 rounded-2xl bg-[#090D16] border border-[#1E293B] space-y-3 shadow-md">
               {currentUser ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center font-bold text-sm text-white shadow-md border border-cyan-400/30 shrink-0">
+                      <div className="w-10 h-10 rounded-2xl bg-[#38BDF8] flex items-center justify-center font-bold text-sm text-slate-950 shadow-md shrink-0">
                         {getUserInitials(currentUser.full_name)}
                       </div>
                       <div className="overflow-hidden">
-                        <p className="font-bold text-slate-100 truncate">{currentUser.full_name}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{currentUser.email}</p>
-                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold mt-0.5">
+                        <p className="font-bold text-[#F8FAFC] truncate">{currentUser.full_name}</p>
+                        <p className="text-[11px] text-[#94A3B8] truncate">{currentUser.email}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-[#10B981] font-semibold mt-0.5">
                           <ShieldCheck className="w-3 h-3" /> Supabase Session Active
                         </span>
                       </div>
@@ -229,10 +229,10 @@ export default function SettingsSidebar({
                     <button
                       type="button"
                       onClick={onSignOut}
-                      className="px-3 py-1.5 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/80 font-semibold text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0"
+                      className="px-3 py-1.5 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-[#EF4444]/40 font-semibold text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0"
                       title="Sign Out"
                     >
-                      <LogOut className="w-3.5 h-3.5 text-red-400" />
+                      <LogOut className="w-3.5 h-3.5 text-[#EF4444]" />
                       <span>Sign Out</span>
                     </button>
                   </div>
@@ -243,28 +243,28 @@ export default function SettingsSidebar({
                       onClick={onToggleMyReports}
                       className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between cursor-pointer transition-colors border ${
                         myReportsOnly 
-                          ? 'bg-cyan-500/20 text-cyan-300 font-bold border-cyan-500/40' 
-                          : 'bg-slate-800/50 text-slate-300 border-slate-700/60 hover:bg-slate-800'
+                          ? 'bg-[#38BDF8]/20 text-[#38BDF8] font-bold border-[#38BDF8]/40' 
+                          : 'bg-[#1E293B]/50 text-[#94A3B8] border-[#1E293B] hover:bg-[#1E293B]'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                        <FileText className="w-3.5 h-3.5 text-[#38BDF8]" />
                         <span>{myReportsOnly ? 'Showing My Reports Only' : 'Filter My Reports'}</span>
                       </div>
-                      {myReportsOnly && <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>}
+                      {myReportsOnly && <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-pulse"></span>}
                     </button>
                   )}
                 </div>
               ) : (
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="font-bold text-slate-200">Guest Session Active</p>
-                    <p className="text-[11px] text-slate-400">Sign in to sync flood incident reports</p>
+                    <p className="font-bold text-[#F8FAFC]">Guest Session Active</p>
+                    <p className="text-[11px] text-[#94A3B8]">Sign in to sync flood incident reports</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => { onClose(); if (onOpenAuthModal) onOpenAuthModal(); }}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-950/50 flex items-center gap-1.5 cursor-pointer shrink-0 border border-cyan-400/30"
+                    className="px-4 py-2 rounded-xl bg-[#38BDF8] hover:bg-sky-400 text-slate-950 font-bold text-xs shadow-lg flex items-center gap-1.5 cursor-pointer shrink-0"
                   >
                     <LogIn className="w-4 h-4" />
                     <span>Sign In / Register</span>
@@ -274,16 +274,16 @@ export default function SettingsSidebar({
             </div>
           </div>
 
-          <div className="h-px bg-slate-800/80" />
+          <div className="h-px bg-[#1E293B]" />
 
           {/* SECTION 2: EMERGENCY SOS & RESOLVE ACTION */}
           <div className="space-y-3">
-            <h4 className="text-[11px] font-extrabold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-[11px] font-extrabold text-[#EF4444] uppercase tracking-wider flex items-center gap-1.5">
               <ShieldAlert className="w-3.5 h-3.5" />
               Emergency SOS Broadcast
             </h4>
 
-            <div className="p-4 rounded-2xl bg-red-950/30 border border-red-900/50 space-y-3">
+            <div className="p-4 rounded-2xl bg-red-950/30 border border-[#EF4444]/30 space-y-3">
               <p className="text-[11px] text-red-200/90 leading-relaxed">
                 Broadcast an emergency SOS signal with live GPS coordinates to nearby mesh peers & emergency responders.
               </p>
@@ -295,9 +295,9 @@ export default function SettingsSidebar({
                   <button
                     type="button"
                     onClick={() => { onClose(); onResolveSOS(); }}
-                    className="w-full py-2 px-3 bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md border border-emerald-400/40 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs"
+                    className="w-full py-2 px-3 bg-[#10B981] hover:bg-emerald-500 text-slate-950 font-bold rounded-xl shadow-md border border-[#10B981]/40 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs"
                   >
-                    <ShieldCheck className="w-4 h-4" />
+                    <ShieldCheck className="w-4 h-4 text-slate-950" />
                     <span>I am Safe / Resolve Active SOS</span>
                   </button>
                 )}
@@ -305,34 +305,34 @@ export default function SettingsSidebar({
             </div>
           </div>
 
-          <div className="h-px bg-slate-800/80" />
+          <div className="h-px bg-[#1E293B]" />
 
           {/* SECTION 3: APP & EMERGENCY SETTINGS */}
           <div className="space-y-3">
-            <h4 className="text-[11px] font-extrabold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-[11px] font-extrabold text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5">
               <Sliders className="w-3.5 h-3.5" />
               App & Emergency Settings
             </h4>
 
             <div className="space-y-2.5">
               {/* Offline Emergency Sharing Toggle */}
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+              <div className="p-3.5 rounded-2xl bg-[#090D16] border border-[#1E293B] flex items-center justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="font-bold text-slate-200 flex items-center gap-1.5">
-                    <Radio className="w-3.5 h-3.5 text-cyan-400" />
+                  <div className="font-bold text-[#F8FAFC] flex items-center gap-1.5">
+                    <Radio className="w-3.5 h-3.5 text-[#38BDF8]" />
                     <span>Offline Emergency Sharing</span>
                     {settings.p2pMeshEnabled && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-400">Share emergency alerts without internet connection</p>
+                  <p className="text-[11px] text-[#94A3B8]">Share emergency alerts without internet connection</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => handleToggle('p2pMeshEnabled')}
                   className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                    settings.p2pMeshEnabled ? 'bg-cyan-500' : 'bg-slate-700'
+                    settings.p2pMeshEnabled ? 'bg-[#38BDF8]' : 'bg-[#1E293B]'
                   }`}
                 >
                   <span className={`block w-4 h-4 rounded-full bg-white transition-transform transform ${
@@ -342,20 +342,20 @@ export default function SettingsSidebar({
               </div>
 
               {/* Battery Saver Mode Toggle */}
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+              <div className="p-3.5 rounded-2xl bg-[#090D16] border border-[#1E293B] flex items-center justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="font-bold text-slate-200 flex items-center gap-1.5">
-                    <BatteryCharging className="w-3.5 h-3.5 text-amber-400" />
+                  <div className="font-bold text-[#F8FAFC] flex items-center gap-1.5">
+                    <BatteryCharging className="w-3.5 h-3.5 text-[#F59E0B]" />
                     <span>Battery Saver Mode</span>
                   </div>
-                  <p className="text-[11px] text-slate-400">Pause background weather updates</p>
+                  <p className="text-[11px] text-[#94A3B8]">Pause background weather updates</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => handleToggle('lowPowerMode')}
                   className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                    settings.lowPowerMode ? 'bg-amber-500' : 'bg-slate-700'
+                    settings.lowPowerMode ? 'bg-[#F59E0B]' : 'bg-[#1E293B]'
                   }`}
                 >
                   <span className={`block w-4 h-4 rounded-full bg-white transition-transform transform ${
@@ -365,10 +365,10 @@ export default function SettingsSidebar({
               </div>
 
               {/* Alert Distance Slider */}
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+              <div className="p-3.5 rounded-2xl bg-[#090D16] border border-[#1E293B] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-200">Alert Distance</span>
-                  <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded-lg border border-cyan-800">
+                  <span className="font-bold text-[#F8FAFC]">Alert Distance</span>
+                  <span className="text-xs font-mono font-bold text-[#38BDF8] bg-[#111827] px-2 py-0.5 rounded-lg border border-[#1E293B]">
                     {settings.alertRadiusKm} {settings.unitSystem === 'metric' ? 'km' : 'mi'}
                   </span>
                 </div>
@@ -379,25 +379,25 @@ export default function SettingsSidebar({
                   step="1"
                   value={settings.alertRadiusKm}
                   onChange={(e) => handleChange('alertRadiusKm', parseInt(e.target.value, 10))}
-                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                  className="w-full h-1.5 bg-[#1E293B] rounded-lg appearance-none cursor-pointer accent-[#38BDF8]"
                 />
               </div>
 
               {/* Unit System */}
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
-                <div className="font-bold text-slate-200 flex items-center gap-1.5">
-                  <Ruler className="w-3.5 h-3.5 text-cyan-400" />
+              <div className="p-3.5 rounded-2xl bg-[#090D16] border border-[#1E293B] flex items-center justify-between gap-3">
+                <div className="font-bold text-[#F8FAFC] flex items-center gap-1.5">
+                  <Ruler className="w-3.5 h-3.5 text-[#38BDF8]" />
                   <span>Distance Units</span>
                 </div>
 
-                <div className="flex bg-slate-800 p-0.5 rounded-xl border border-slate-700">
+                <div className="flex bg-[#1E293B] p-0.5 rounded-xl border border-[#1E293B]">
                   <button
                     type="button"
                     onClick={() => handleChange('unitSystem', 'metric')}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       settings.unitSystem === 'metric'
-                        ? 'bg-cyan-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-[#38BDF8] text-slate-950 shadow-sm'
+                        : 'text-[#94A3B8] hover:text-[#F8FAFC]'
                     }`}
                   >
                     Kilometers
@@ -407,8 +407,8 @@ export default function SettingsSidebar({
                     onClick={() => handleChange('unitSystem', 'imperial')}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       settings.unitSystem === 'imperial'
-                        ? 'bg-cyan-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-[#38BDF8] text-slate-950 shadow-sm'
+                        : 'text-[#94A3B8] hover:text-[#F8FAFC]'
                     }`}
                   >
                     Miles
@@ -418,25 +418,25 @@ export default function SettingsSidebar({
             </div>
           </div>
 
-          <div className="h-px bg-slate-800/80" />
+          <div className="h-px bg-[#1E293B]" />
 
           {/* SECTION 4: SAVED STORAGE */}
           <div className="space-y-3">
-            <h4 className="text-[11px] font-extrabold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-[11px] font-extrabold text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5">
               <Trash2 className="w-3.5 h-3.5" />
               Saved Storage
             </h4>
 
             <div className="space-y-2.5">
               {/* Send Saved Reports Now */}
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+              <div className="p-3.5 rounded-2xl bg-[#090D16] border border-[#1E293B] flex items-center justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="font-bold text-slate-200 flex items-center gap-1.5">
-                    <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                  <div className="font-bold text-[#F8FAFC] flex items-center gap-1.5">
+                    <RefreshCw className="w-3.5 h-3.5 text-[#38BDF8]" />
                     <span>Saved Reports Queue</span>
                   </div>
-                  <p className="text-[11px] text-slate-400">
-                    Pending: <strong className="text-cyan-300 font-mono">{pendingQueueCount} item(s)</strong>
+                  <p className="text-[11px] text-[#94A3B8]">
+                    Pending: <strong className="text-[#38BDF8] font-mono">{pendingQueueCount} item(s)</strong>
                   </p>
                 </div>
 
@@ -444,7 +444,7 @@ export default function SettingsSidebar({
                   type="button"
                   onClick={handleForceSync}
                   disabled={isSyncing}
-                  className="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                  className="px-3 py-1.5 rounded-xl bg-[#38BDF8]/20 hover:bg-[#38BDF8]/30 text-[#38BDF8] border border-[#38BDF8]/40 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0"
                 >
                   {isSyncing ? (
                     <>
@@ -461,27 +461,27 @@ export default function SettingsSidebar({
               </div>
 
               {/* Clear Cache */}
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+              <div className="p-3.5 rounded-2xl bg-[#090D16] border border-[#1E293B] flex items-center justify-between gap-3">
                 <div className="space-y-0.5">
-                  <div className="font-bold text-slate-200">Local Map Cache</div>
-                  <p className="text-[11px] text-slate-400">Clears offline tiles & weather cache</p>
+                  <div className="font-bold text-[#F8FAFC]">Local Map Cache</div>
+                  <p className="text-[11px] text-[#94A3B8]">Clears offline tiles & weather cache</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowClearConfirm(true)}
-                  className="px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0"
+                  className="px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-[#EF4444]/40 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3.5 h-3.5 text-[#EF4444]" />
                   <span>Clear</span>
                 </button>
               </div>
 
               {/* Clear Cache Confirmation Dialog */}
               {showClearConfirm && (
-                <div className="p-3.5 rounded-2xl bg-rose-950/90 border border-rose-600/80 text-rose-100 space-y-2 animate-in zoom-in-95 duration-200">
+                <div className="p-3.5 rounded-2xl bg-rose-950/90 border border-[#EF4444]/80 text-rose-100 space-y-2 animate-in zoom-in-95 duration-200">
                   <div className="flex items-center gap-2 font-bold text-xs">
-                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0" />
                     <span>Confirm Clear Cache?</span>
                   </div>
                   <p className="text-[11px] text-rose-200">
@@ -491,14 +491,14 @@ export default function SettingsSidebar({
                     <button
                       type="button"
                       onClick={handleClearCache}
-                      className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
+                      className="px-3 py-1 bg-[#EF4444] hover:bg-rose-500 text-white font-bold rounded-lg text-xs cursor-pointer shadow-md"
                     >
                       Clear Cache
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowClearConfirm(false)}
-                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs cursor-pointer"
+                      className="px-3 py-1 bg-[#1E293B] hover:bg-slate-700 text-[#94A3B8] rounded-lg text-xs cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -508,7 +508,7 @@ export default function SettingsSidebar({
             </div>
           </div>
 
-          <div className="pt-2 text-center text-[10px] text-slate-500 font-mono">
+          <div className="pt-2 text-center text-[10px] text-[#94A3B8] font-mono">
             FloodSpot Mobile Engine • v2.0.0 • Bounded GIS & SOS System
           </div>
         </div>

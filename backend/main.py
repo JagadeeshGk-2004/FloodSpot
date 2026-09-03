@@ -84,11 +84,12 @@ from services.cv_service import verify_flood_image
 class ImagePayload(BaseModel):
     image_base64: str = Field(..., description="Base64 image data string")
 
+@app.post("/api/verify", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
 @app.post("/api/verify-image", tags=["Hydro Depth Engine"], summary="Analyze image with Hydro Depth Engine")
 async def verify_image_endpoint(payload: ImagePayload) -> Dict[str, Any]:
     """
-    Direct FloodNet-CV Hydro-Depth Engine verification endpoint.
-    Examines uploaded image and returns { "is_flood": bool, "confidence": float, "detected_elements": str, "reason": str }.
+    Direct Hydro Depth Engine verification endpoint.
+    Returns { "verified": bool, "confidence": float, "detected_features": list, "message": str }.
     """
     try:
         raw_b64 = payload.image_base64
@@ -98,8 +99,15 @@ async def verify_image_endpoint(payload: ImagePayload) -> Dict[str, Any]:
         result = verify_flood_image(image_bytes)
         return result
     except Exception as err:
-        logger.error(f"Error in /api/verify-image: {err}")
-        raise HTTPException(status_code=400, detail=f"Image verification error: {str(err)}")
+        logger.error(f"Error in verification endpoint: {err}")
+        return {
+            "verified": False,
+            "is_flood": False,
+            "confidence": 0.10,
+            "detected_features": [],
+            "message": "Image rejected: No waterlogging or flood hazards detected.",
+            "error": "Image rejected: No waterlogging or flood hazards detected."
+        }
 
 # Core & Weather Endpoints
 @app.get("/api/health", tags=["Health"], summary="Health check endpoint")

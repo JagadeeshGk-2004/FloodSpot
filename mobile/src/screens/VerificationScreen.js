@@ -158,14 +158,19 @@ export default function VerificationScreen() {
     const isImageFailed = failedImages[item.id];
     const imageUrl = isImageFailed ? null : resolveImageUrl(item);
 
+    const rawLoc = item.location_name || item.location;
+    const locTitle = typeof rawLoc === 'object'
+      ? (rawLoc.name || rawLoc.location_name || 'Reported Area')
+      : String(rawLoc || 'Reported Area');
+
     return (
       <GlassView style={styles.card}>
-        {/* Card Header Row: Location Title & Severity Badge */}
+        {/* 1. Header row: Location title (single line, ellipsis) on left; Severity pill on right */}
         <View style={styles.cardHeader}>
           <View style={styles.locationContainer}>
             <MapPin size={16} color={COLORS.skyBlue} />
             <Text style={styles.locationTitle} numberOfLines={1}>
-              {formatString(item.location_name || item.location, 'Reported Area')}
+              {locTitle}
             </Text>
           </View>
 
@@ -189,34 +194,18 @@ export default function VerificationScreen() {
                   : { color: COLORS.mediumYellow },
               ]}
             >
-              {formatString(item.severity, 'MEDIUM').toUpperCase()}
+              {formatString(item.severity, 'ELEVATED').toUpperCase()}
             </Text>
           </View>
         </View>
 
-        {/* Sub-Header: Timestamp & Hydro Depth Engine Verification Badge */}
-        <View style={styles.metaRow}>
-          <View style={styles.timeRow}>
-            <Clock size={12} color={COLORS.textMuted} />
-            <Text style={styles.timeText}>
-              {item.created_at
-                ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : 'Recently'}
-            </Text>
-          </View>
-
-          <View style={styles.verifiedBadge}>
-            <CheckCircle2 size={12} color={COLORS.safeGreen} />
-            <Text style={styles.verifiedBadgeText}>Hydro Depth Engine Verified</Text>
-          </View>
+        {/* 2. Verification badge */}
+        <View style={styles.verifiedBadgeRow}>
+          <CheckCircle2 size={13} color={COLORS.safeGreen} />
+          <Text style={styles.verifiedBadgeText}>✓ Hydro Depth Engine Verified</Text>
         </View>
 
-        {/* Incident Description */}
-        <Text style={styles.descriptionText}>
-          {formatString(item.description, 'Community waterlogging report.')}
-        </Text>
-
-        {/* Exact User Uploaded Photo / Neutral Container if No Photo Attached */}
+        {/* 3. User-uploaded incident image container (180px fixed height) */}
         {imageUrl ? (
           <Image
             source={{ uri: imageUrl }}
@@ -234,7 +223,12 @@ export default function VerificationScreen() {
           </View>
         )}
 
-        {/* Interactive Voting Footer */}
+        {/* 4. Incident description / citizen report text */}
+        <Text style={styles.descriptionText}>
+          {formatString(item.description, 'Community waterlogging report.')}
+        </Text>
+
+        {/* 5. Interactive Voting Action Row */}
         <View style={styles.cardFooter}>
           <Text style={styles.voteMetaText}>
             👍 {vData.upvotes} Confirm • 🚩 {vData.flags} Flagged
@@ -289,6 +283,11 @@ export default function VerificationScreen() {
             onRefresh={fetchReports}
             tintColor={COLORS.skyBlue}
           />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No pending community verifications in your area.</Text>
+          </View>
         }
         ListHeaderComponent={
           <View style={styles.headerContainer}>
@@ -442,9 +441,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.3)',
   },
+  verifiedBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginVertical: 2,
+  },
   verifiedBadgeText: {
     color: COLORS.safeGreen,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   descriptionText: {
@@ -536,5 +541,21 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     fontFamily: 'monospace',
+  },
+  emptyContainer: {
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  emptyText: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

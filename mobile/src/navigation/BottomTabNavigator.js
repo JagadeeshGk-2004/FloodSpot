@@ -11,7 +11,7 @@ import SOSScreen from '../screens/SOSScreen';
 import RoutesScreen from '../screens/RoutesScreen';
 import VerificationScreen from '../screens/VerificationScreen';
 
-import { Map, PlusCircle, ShieldAlert, Navigation, Sparkles } from 'lucide-react-native';
+import { Map, PlusCircle, ShieldAlert, Navigation, ShieldCheck } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -56,7 +56,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
             IconComponent = Navigation;
             label = 'Routes';
           } else if (route.name === 'VerifyTab') {
-            IconComponent = Sparkles;
+            IconComponent = ShieldCheck;
             label = 'Verify';
           }
 
@@ -133,10 +133,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     height: 64,
-    backgroundColor: 'rgba(9, 13, 22, 0.94)',
+    backgroundColor: COLORS.card,
     borderRadius: 32,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 4,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   tabLabel: {
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     fontSize: 9,
     fontWeight: '600',
     marginTop: 2,
@@ -168,14 +168,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.danger,
+    backgroundColor: COLORS.crimson,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.border,
   },
   sosTabLabel: {
-    color: COLORS.danger,
+    color: COLORS.crimson,
     fontSize: 10,
     fontWeight: '900',
     marginTop: 2,
