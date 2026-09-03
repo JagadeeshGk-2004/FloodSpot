@@ -54,13 +54,22 @@ export default function ReportModal({ isOpen, onClose, onReportAdded, onShowToas
         const result = await verifyFloodImage(base64Str);
         setCvResult(result);
         if (!result.verified) {
-          setErrorMsg(result.error || 'Verification Failed: No floodwater, road inundation, or storm hazard detected in this image.');
+          setErrorMsg(result.error || 'No road submergence, standing water, or flood hazards detected in this image.');
         } else {
           setErrorMsg('');
+          if (result.severity) {
+            if (result.severity.toLowerCase().includes('high')) setSeverity('high');
+            else if (result.severity.toLowerCase().includes('medium')) setSeverity('medium');
+            else if (result.severity.toLowerCase().includes('low')) setSeverity('low');
+          }
+          if (result.depth_est) {
+            if (result.depth_est.includes('1.5')) setWaterDepth('1.5 ft');
+            else if (result.depth_est.includes('2.5')) setWaterDepth('2.5 ft');
+          }
         }
       } catch (err) {
         console.error('[ReportModal] Vision classification error:', err);
-        const fallbackErr = 'Verification Failed: No floodwater, road inundation, or storm hazard detected in this image.';
+        const fallbackErr = 'No road submergence, standing water, or flood hazards detected in this image.';
         setCvResult({ verified: false, confidence: 0.12, detected_features: [], error: fallbackErr });
         setErrorMsg(fallbackErr);
       } finally {
